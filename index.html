@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>密境 The Realm - 线上占星艺术展</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+SC:wght@300;400;700&display=swap');
+
+        :root {
+            --bg-color: #050508;
+            --accent-gold: #c5a059; 
+            --glass-bg: rgba(20, 20, 25, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color); color: #fff;
+            font-family: 'Noto Sans SC', sans-serif; overflow: hidden;
+            height: 100vh; width: 100vw;
+            overscroll-behavior: none; 
+        }
+
+        .serif { font-family: 'Cinzel', serif; letter-spacing: 2px; }
+
+        #universe-bg {
+            position: fixed; top: -50px; left: -50px; right: -50px; bottom: -50px;
+            background: radial-gradient(circle at center, #141018 0%, #050508 100%);
+            z-index: -2; transition: transform 0.1s ease-out;
+        }
+        .star-dust {
+            position: absolute; width: 100%; height: 100%;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 5px);
+            background-size: 350px 350px; opacity: 0.15;
+            animation: twinkle 8s infinite alternate;
+        }
+        @keyframes twinkle { 0% { opacity: 0.05; } 100% { opacity: 0.2; } }
+
+        .view-section {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.8s ease, transform 0.8s ease; transform: scale(1.02);
+        }
+        .view-section.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+        #intro-view { 
+            text-align: center; position: relative; 
+            background: radial-gradient(circle at center, rgba(197, 160, 89, 0.08) 0%, transparent 60%);
+        }
+
+        .astro-mandala {
+            position: absolute; top: 50%; left: 50%; width: 120vmin; height: 120vmin;
+            transform: translate(-50%, -50%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cg stroke='%23c5a059' fill='none' opacity='1'%3E%3Ccircle cx='400' cy='400' r='380' stroke-width='1' stroke-dasharray='4 12'/%3E%3Ccircle cx='400' cy='400' r='360' stroke-width='2'/%3E%3Ccircle cx='400' cy='400' r='300' stroke-width='1'/%3E%3Ccircle cx='400' cy='400' r='290' stroke-width='4' stroke-dasharray='1 8'/%3E%3Ccircle cx='400' cy='400' r='150' stroke-width='1'/%3E%3Cpath d='M400 40 L400 760 M40 400 L760 400 M145 145 L655 655 M145 655 L655 145 M220 80 L580 720 M580 80 L220 720 M80 220 L720 580 M80 580 L720 220' stroke-width='0.5'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            opacity: 0.15;
+            filter: drop-shadow(0 0 15px rgba(197, 160, 89, 0.3));
+            animation: slowRotate 180s linear infinite; pointer-events: none; z-index: -1;
+        }
+        @keyframes slowRotate { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        .title-glow { 
+            font-size: 5.5rem; letter-spacing: 12px; margin-bottom: 5px; font-weight: normal;
+            background: linear-gradient(to bottom, #ffffff 0%, #c5a059 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.8));
+        }
+        .subtitle { font-size: 1.2rem; color: #a0a0a0; margin-bottom: 40px; letter-spacing: 10px; text-transform: uppercase;}
+        
+        .enter-btn {
+            padding: 16px 55px; background: rgba(20, 20, 25, 0.5); border: 1px solid rgba(197, 160, 89, 0.4);
+            color: var(--accent-gold); font-size: 1rem; cursor: pointer; border-radius: 40px;
+            transition: all 0.5s ease; letter-spacing: 3px; z-index: 10; position: relative;
+            overflow: hidden; backdrop-filter: blur(5px);
+        }
+        .enter-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-20deg); animation: btnShine 4s infinite;
+        }
+        @keyframes btnShine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+        .enter-btn:hover { background: rgba(197, 160, 89, 0.1); border-color: var(--accent-gold); box-shadow: 0 0 30px rgba(197, 160, 89, 0.2); color: #fff; }
+
+        .intro-curators { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; opacity: 0.6; width: 90%; }
+        .intro-curators-title { font-size: 0.7rem; color: #777; letter-spacing: 5px; margin-bottom: 15px; }
+        .intro-curators-avatars { display: flex; gap: 30px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+        .intro-curator-item { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .intro-curator-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(197, 160, 89, 0.4); margin-bottom: 5px; }
+        .intro-curator-name { font-size: 0.85rem; color: #bbb; letter-spacing: 2px; white-space: nowrap; }
+        .intro-curator-role { font-size: 0.7rem; color: #777; letter-spacing: 1px; white-space: nowrap; }
+
+        .galaxy-container { position: relative; width: 100vw; height: 100vh; }
+        .artist-planet { position: absolute; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.5s; }
+        .artist-planet:hover { transform: scale(1.12); }
+        
+        .planet-sphere {
+            width: 130px; height: 130px; border-radius: 50%; margin-bottom: 15px; 
+            background-size: cover; background-position: center; border: 1px solid rgba(197, 160, 89, 0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.6); position: relative;
+        }
+        .planet-sphere::before {
+            content: ''; position: absolute; top: -12px; left: -12px; right: -12px; bottom: -12px;
+            border: 1px dashed rgba(197, 160, 89, 0.3); border-radius: 50%; animation: rotateRing 25s linear infinite;
+        }
+        .planet-name { font-size: 1.4rem; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 2px 10px #000; }
+        .planet-sign { font-size: 0.85rem; color: var(--accent-gold); margin-top: 5px; opacity: 0.8; }
+        
+        #planet-crazying { top: 25%; left: 20%; }
+        #planet-isolde { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        #planet-isolde:hover { transform: translate(-50%, -50%) scale(1.12); }
+        #planet-cocozoe { bottom: 25%; right: 20%; }
+
+        #artist-view { flex-direction: row; padding: 5vw; gap: 4vw; }
+        .back-btn { position: absolute; top: 40px; left: 40px; color: #888; cursor: pointer; font-size: 0.9rem; letter-spacing: 3px; transition: 0.3s; z-index: 100; }
+        .back-btn:hover { color: var(--accent-gold); }
+
+        .astrolabe-container { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; }
+        .astrolabe-ring {
+            width: 420px; height: 420px; border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 50%; position: relative; animation: rotateRing 100s linear infinite;
+        }
+        .astrolabe-ring::after {
+            content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 1px dashed rgba(197, 160, 89, 0.2); border-radius: 50%;
+        }
+        @keyframes rotateRing { 100% { transform: rotate(360deg); } }
+        
+        .artist-avatar {
+            position: absolute; width: 170px; height: 170px; border-radius: 50%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%); object-fit: cover;
+            border: 2px solid rgba(197, 160, 89, 0.6); z-index: 5; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        .astro-node {
+            position: absolute; width: 44px; height: 44px; background: #0a0a0f; border: 1px solid rgba(197, 160, 89, 0.5);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; 
+            transition: all 0.4s; color: var(--accent-gold); animation: counterRotate 100s linear infinite; z-index: 10;
+        }
+        @keyframes counterRotate { 100% { transform: rotate(-360deg); } }
+        .astro-node:hover, .astro-node.active { background: var(--accent-gold); color: #000; transform: scale(1.15); box-shadow: 0 0 20px rgba(197, 160, 89, 0.4); border-color: var(--accent-gold); }
+
+        .artwork-display {
+            flex: 1.2; background: rgba(15, 15, 18, 0.6); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 50px;
+            display: flex; flex-direction: column; max-width: 650px; height: 85vh; overflow-y: auto; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .artwork-display::-webkit-scrollbar { width: 4px; }
+        .artwork-display::-webkit-scrollbar-thumb { background: rgba(197, 160, 89, 0.3); border-radius: 10px; }
+
+        .artwork-img { width: 100%; max-height: 45vh; object-fit: contain; margin-bottom: 30px; transition: opacity 0.6s ease; }
+        .artwork-title { font-size: 1.7rem; color: #fff; margin-bottom: 8px; letter-spacing: 1px; }
+        .artwork-meta { font-size: 0.8rem; color: #777; margin-bottom: 25px; letter-spacing: 2px; }
+        
+        .artwork-quote {
+            font-size: 1rem; line-height: 1.9; color: #dcdcdc; font-weight: 300; font-style: italic; 
+            padding-left: 25px; border-left: 1px solid var(--accent-gold); margin-bottom: 45px; position: relative;
+        }
+        .artwork-quote::before { content: '"'; position: absolute; top: -15px; left: 5px; font-size: 3rem; color: rgba(197, 160, 89, 0.15); font-family: serif; }
+
+        .divider { width: 50px; height: 1px; background: var(--accent-gold); margin: 0 auto 40px auto; opacity: 0.3; }
+        .theme-title { font-size: 1.1rem; color: var(--accent-gold); letter-spacing: 3px; margin-bottom: 20px; text-align: center; }
+        .artist-bio { font-size: 0.9rem; color: #999; line-height: 2; font-weight: 300; margin-bottom: 40px; text-align: justify; }
+
+        .review-box { border: 1px solid rgba(197, 160, 89, 0.15); border-radius: 8px; padding: 35px 30px; position: relative; }
+        .review-title { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #121015; padding: 0 15px; font-size: 0.85rem; color: var(--accent-gold); letter-spacing: 3px; }
+        .review-content { font-size: 0.9rem; color: #b0b0b0; line-height: 2.2; font-weight: 300; text-align: justify; white-space: pre-wrap; }
+        
+        .review-author-footer { display: flex; justify-content: flex-end; align-items: center; margin-top: 30px; gap: 15px; }
+        .review-author-avatar img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid #121015; }
+        .review-author-text { font-size: 0.8rem; color: #666; font-style: italic; letter-spacing: 1px; }
+
+        @media (max-width: 768px) {
+            .title-glow { font-size: 3.5rem; letter-spacing: 6px; }
+            .subtitle { font-size: 0.9rem; letter-spacing: 5px; margin-bottom: 30px; }
+            .astro-mandala { width: 150vmin; height: 150vmin; opacity: 0.1; }
+            .intro-curators { bottom: 30px; }
+            .intro-curator-name { font-size: 0.8rem; }
+            .intro-curator-role { font-size: 0.65rem; }
+            
+            .galaxy-container { 
+                display: flex; flex-direction: column; justify-content: flex-start; align-items: center; 
+                gap: 30px; padding-top: 120px; overflow-y: auto; height: 100vh; padding-bottom: 50px;
+            }
+            .artist-planet { position: relative; top: auto !important; left: auto !important; transform: none !important; }
+            .artist-planet:hover { transform: scale(1.05) !important; }
+            .planet-sphere { width: 100px; height: 100px; }
+            
+            #artist-view { 
+                flex-direction: column; padding: 0; gap: 0; justify-content: flex-start; 
+                overflow-y: auto; height: 100vh; display: none;
+            }
+            .view-section.active#artist-view { display: flex; }
+            
+            .back-btn { top: 15px; left: 15px; font-size: 0.8rem; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 20px;}
+            
+            .astrolabe-container { 
+                flex: none; height: 320px; width: 100%; margin-top: 40px; 
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+            .astrolabe-ring { width: 240px; height: 240px; }
+            .artist-avatar { width: 100px; height: 100px; }
+            .astro-node { width: 36px; height: 36px; font-size: 0.9rem; }
+            .astrolabe-container p { bottom: 10px !important; }
+            
+            .artwork-display { 
+                flex: none; height: auto; max-width: 100%; overflow-y: visible; 
+                padding: 30px 20px; border-radius: 0; border: none; background: transparent; box-shadow: none;
+            }
+            .artwork-img { max-height: 50vh; margin-bottom: 20px; }
+            .artwork-title { font-size: 1.4rem; }
+            .artwork-quote { font-size: 0.95rem; padding-left: 15px; }
+            .review-box { padding: 25px 15px; }
+            .review-author-footer { flex-direction: column; align-items: flex-end; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="universe-bg"><div class="star-dust"></div></div>
+
+    <!-- 首页 -->
+    <div id="intro-view" class="view-section active">
+        <div class="astro-mandala"></div>
+        <h1 class="title-glow serif">THE REALM</h1>
+        <p class="subtitle serif">密 境</p>
+        <p style="margin-bottom: 60px; color: #555; font-weight: 300; letter-spacing: 3px; font-size: 0.8rem;">线上占星艺术展 · 2024.03.04 - 05.08</p>
+        <button class="enter-btn" onclick="switchView('galaxy-view')">进入密境</button>
+
+        <div class="intro-curators">
+            <div class="intro-curators-title">策展团队</div>
+            <div class="intro-curators-avatars">
+                <div class="intro-curator-item">
+                    <img src="curator1.jpg" class="intro-curator-img" alt="密密">
+                    <span class="intro-curator-name">密密 Secret</span>
+                    <span class="intro-curator-role">占星指导 | 创意策划</span>
+                </div>
+                <div class="intro-curator-item">
+                    <img src="curator2.jpg" class="intro-curator-img" alt="杨浪浪">
+                    <span class="intro-curator-name">杨浪浪</span>
+                    <span class="intro-curator-role">三尺画院主理人 | 策展人</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导航页 -->
+    <div id="galaxy-view" class="view-section">
+        <h2 style="position: absolute; top: 40px; color: #666; font-weight: 300; letter-spacing: 6px; font-size: 0.8rem; text-transform: uppercase;">选择星轨 开始探索</h2>
+        <div class="galaxy-container">
+            <div class="artist-planet" id="planet-crazying" onclick="openArtist('crazying')">
+                <div class="planet-sphere" style="background-image: url('crazying_avatar.jpg');"></div>
+                <div class="planet-name serif">Crazying</div>
+                <div class="planet-sign">♓ Pisces</div>
+            </div>
+            <div class="artist-planet" id="planet-isolde" onclick="openArtist('isolde')">
+                <div class="planet-sphere" style="background-image: url('isolde_avatar.jpg');"></div>
+                <div class="planet-name serif">Isolde</div>
+                <div class="planet-sign">♈ Aries</div>
+            </div>
+            <div class="artist-planet" id="planet-cocozoe" onclick="openArtist('cocozoe')">
+                <div class="planet-sphere" style="background-image: url('cocozoe_avatar.jpg');"></div>
+                <div class="planet-name serif">CocoZoe</div>
+                <div class="planet-sign">♐ Sagittarius</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 展区页 -->
+    <div id="artist-view" class="view-section">
+        <div class="back-btn" onclick="switchView('galaxy-view')">← 返回</div>
+        
+        <div class="astrolabe-container">
+            <img id="display-avatar" class="artist-avatar" src="" alt="Artist">
+            <div class="astrolabe-ring" id="dynamic-ring"></div>
+            <p style="position: absolute; bottom: -70px; color: #555; font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase;">点击星轨节点</p>
+        </div>
+
+        <div class="artwork-display" id="scroll-container">
+            <img id="display-artwork" class="artwork-img" src="" alt="Artwork">
+            <h2 id="display-title" class="artwork-title serif">作品名</h2>
+            <p id="display-meta" class="artwork-meta">尺寸 / 媒介</p>
+            <div id="display-quote" class="artwork-quote">艺术家语录</div>
+            
+            <div class="divider"></div>
+            
+            <h3 id="display-theme" class="theme-title serif">主题</h3>
+            <div id="display-bio" class="artist-bio">简介</div>
+            
+            <div class="review-box">
+                <div class="review-title serif">星象叙事</div>
+                <div id="display-review" class="review-content">策展点评内容</div>
+                
+                <div class="review-author-footer">
+                    <div class="review-author-text">占星点评：密密</div>
+                    <div class="review-author-avatar">
+                        <img src="curator1.jpg" alt="密密">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('mousemove', (e) => {
+            if(window.innerWidth <= 768) return;
+            const bg = document.getElementById('universe-bg');
+            const x = (e.clientX / window.innerWidth - 0.5) * 15;
+            const y = (e.clientY / window.innerHeight - 0.5) * 15;
+            bg.style.transform = `translate(${x}px, ${y}px)`;
+        });
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if(viewId === 'artist-view') {
+                document.getElementById('artist-view').scrollTop = 0;
+            }
+        }
+
+        const artistsData = {
+            crazying: {
+                theme: "爱的迷雾 The Haze of Love",
+                avatar: "crazying_avatar.jpg",
+                bio: "艺术家狂莺Crazying以占星学工具占星骰子掷出的结果为灵感，尝试探索面对自我与他人时的冲突与张力。在光怪陆离、情感与谎言的交织中，表达难以言说的复杂体验。\n\n在此系列里，狗是艺术家创作过程中的重要符号，将她基于本能的感受以直白的方式体现，也是精神从混沌走向秩序的标志。",
+                review: "红色是她的呐喊，蓝色是她的等待。\n\n在她的笔触下，我总能听见一个游荡在深海边缘的孩子。月亮落在天秤座第7宫的她，终其一生都在为他人的平衡而站立，却唯独在自己的世界里失重。那份月海相位的朦胧，让她的委屈化作了无声的雾 —— 她害怕精准的表达会撕裂关系的幻梦，害怕伸出的手换回的是拒绝的余震。于是，她选择将那个渴望被拥抱的灵魂，深深地禁锢在名为“礼貌”的压抑之中。\n\n莺子的作品是一场不该被拆解的连续观测。唯有将这些切片连成整体，你才能在那些起伏的笔触中，撞见那个在荒原尽头枯坐、等待被理解、被爱的小孩。水星白羊赋予了她近乎蛮荒的赤诚，却在海王星与凯龙星的撕扯下，变形成了一种令人心碎的野性 —— 那是一种带着伤口奔跑的真实，倔强、破碎，却又因这种痛苦的原始感而显得格外动人。\n\n在她的画笔下，她的叙述就是寻找，在无数次的痛苦经验中寻找那颗在双鱼座12宫被截夺的太阳。她就像一个在痛苦梦境中走丢的战神，迷失在了无数个过往的战场中，忘记了归家的路，也忘记了所有的战争都早已结束，她已经带着荣耀凯旋。\n\n或许在双鱼座那片包容一切的深蓝梦海里，所有的旧日战场都将沉入海底。因果拂过指尖，只为传递一个迟到的赦免：与你的执念和解，与那份紧握的战意告别。众生同呼吸，盈亏自守恒。是和是战、得失成败，从来都不是谁一个人可以决定的，一切现象都是宇宙呼吸间的一次必然起伏。",
+                artworks: [
+                    { title: "《囚禁》", meta: "14.28*20cm | 2025年12月 | 数字绘画", img: "crazying_art1.jpg", quote: "「我曾经所体验到的一段关系，就像高温的浴室，无处可去、呼吸不畅。那两只狗就像我自己，弱小、压抑，又不敢爆发。困住我的是这虚拟的空间和铁链，还是我自己？」" },
+                    { title: "《虚空怒火》", meta: "14.28*20cm | 2025年12月 | 数字绘画", img: "crazying_art2.jpg", quote: "「这是我所谓的平静反面的阴影。我总是在体验对自己的愤怒，这种愤怒就像审判，不知从何而来，却宣告了我的下场。」" },
+                    { title: "《无边的幻想》", meta: "14.28*20cm | 2025年12月 | 数字绘画", img: "crazying_art3.jpg", quote: "「如果抛却掉那些沉重的，我的内心有很多幻想。我想很纯粹的守护一些东西，就像小狗一样轻松和简单，飞奔过去、然后紧紧抱住。」" },
+                    { title: "《夜》", meta: "14.28*20cm | 2025年12月 | 数字绘画", img: "crazying_art4.jpg", quote: "「这是特别的梦，我无法言说，但我想留下那种温柔的的记忆。」" }
+                ]
+            },
+            isolde: {
+                theme: "缄默的癫狂 Silent Mania",
+                avatar: "isolde_avatar.jpg",
+                bio: "水云灯Isolde的系列作品，以星象更迭产生的能量起伏为引，探讨在\"五毒\"贪嗔痴慢疑的侵蚀下，意识的抽象和割裂。人身处戏中却浑然不觉，如同深陷一场无法醒来的梦，造作着自己都无法想象的行为。\n\n艺术家采用\"无面人\"的形象和芭蕾舞动作，探索内在感受表达方式的边界，亦完成对自我认知的重塑；风格的改变，旨在突破既定的系列感，寻找多样的创作形式。",
+                review: "在水云灯的画布上，芭蕾不再是轻盈的飞翔，而是一场在重力边缘的痛苦挣扎。南交点摩羯的业力，如同某种古老而冷酷的秩序，将灵魂紧紧锁死；而木火土在金牛座的滞重，更是为这具灵魂锻造了一座精致却密不透风的物质牢笼。\n\n那些无面人，正是被“贪嗔痴慢疑”五种毒素模糊了面目的众生相。日金白羊7宫的灼热渴望，在土元素的压抑下，化作了扭曲的舞步。她不是在起舞，她是在撞击那堵看不见的、由物质与欲望筑成的墙。她困在自己的躯体里太久了，久到忘记了出口其实就在那份无法和解的碎裂声中。\n\n在她的星盘里，月亮与北交点在巨蟹座11宫相拥，那是灵魂向往精神故里的终极季风。然而，这股暖流正与南交摩羯那沉重的、固化的物质山脉进行着无声的切割。\n\n精神与物质，本走到生命向两个相反方向的极限延伸。我们总在试图让它们和解，却忘了唯有彻底的分离与果决的选择，才能在最后铸就那个首尾相接的圆。这种抉择本身，就带着一种分裂且变动的凄美 —— 正如她笔下那些失去面目却依然起舞的灵魂，它们正是在抛弃了物质的既定形态后，才在11宫的众生海里，找回了名为本真的跳动。\n\n不必执于形式化的和解，唯有极致的分离，方能成就圆满的同归。",
+                artworks: [
+                    { title: "《嗔》", meta: "20*15cm | 2025年11月 | 数字绘画", img: "isolde_art1.jpg", quote: "「用嗔恨滋养出的爆裂之花。」" },
+                    { title: "《疑》", meta: "20*15cm | 2025年11月 | 数字绘画", img: "isolde_art2.jpg", quote: "「封锁的情感，局限的视角，自我欺骗的手段。」" },
+                    { title: "《愚痴》", meta: "20*15cm | 2025年11月 | 数字绘画", img: "isolde_art3.jpg", quote: "「失真的世界，眼花缭乱的幻觉。」" },
+                    { title: "《贪》", meta: "20*15cm | 2025年11月 | 数字绘画", img: "isolde_art4.jpg", quote: "「一场美梦，但要献上你的精血来供养，拥有的越多，越会被抽空一切。」" },
+                    { title: "《傲慢》", meta: "20*15cm | 2025年12月 | 数字绘画", img: "isolde_art5.jpg", quote: "「最赤裸的表演，最难挣脱的泥潭。」" },
+                    { title: "《别害怕》", meta: "20*11.25cm | 2025年11月 | 数字绘画", img: "isolde_art6.jpg", quote: "「无论如何，不要自我放弃，闭上眼在坠落，睁开眼被承托。」" }
+                ]
+            },
+            cocozoe: {
+                theme: "穿越绝境 Across the Impasse",
+                avatar: "cocozoe_avatar.jpg",
+                bio: "在CocoZoe的系列创作中，艺术家复盘自身经历，试图建构有关自我的寓言故事体系，探讨神话学中经典的原型 —— \"下降黑暗\"。作品将参观与被参观的对立身份打破，以\"人在画中游\"的视角，身临其境的让观展人感受属于她的神话。\n\n占星学符号是艺术家绘画语言中的重要组成部分，也是隐喻的创作手法。这与鲜艳的画面本身形成一明一暗的对比，塑造类似童话创作的双关表达效果。",
+                review: "在Coco的画面里，有一种近乎荒诞的轻盈。那是群星射手12宫为自己编织的、一座庞大而虚幻的理想主义岛屿。然而，岛屿之下，是金星天蝎刑克土星水瓶的暗流 —— 那是关于背叛的极度痛楚，与被疏离的深层恐惧。\n\n她像一个逃避长大的小孩，在现实的冲击下，不断用射手座的天真去修补那些因关系碎裂而产生的空洞。她试图用宏大的叙事来解释痛苦，用逃避来维持那个假大空的国度。可现实的寒风正强硬地拆解着她的城堡，那些她曾以为永恒的理想，正因金土刑的冷酷而变得寸寸龟裂。\n\n宇宙从未想过要惊扰她那场瑰丽的梦。南交巨蟹7宫的她，曾像个蜷缩在旧日温室里的孩子，试图在虚幻的屏障后躲避现实的寒风。然而，北交摩羯1宫的宿命正向她递出权杖：美好的童话不应只在闭眼的瞬间闪烁，而应成为触手可及的真实。\n\n绘画，便是她将灵魂深处的微光，一笔一划凿进现实世界的途径。她正通过画笔，在这座名为妄想的牢笼上开窗。她不再是被动等待救援的公主，而是正为自己的童话建筑基石的工匠。每一张画布，都是她从依赖走向自立跨越的领土，她在现实中一寸寸地显化，让梦境拥有了钢筋铁骨的重量。\n\n每个小孩最终都要长大，成为自己世界的工程师。长大不是一种对自我与纯真的背叛，而是一种能够将梦想升级为理想的质变。",
+                artworks: [
+                    { title: "《贫瘠之境》", meta: "30*40cm | 2025年12月 | 布面油画", img: "cocozoe_art1.jpg", quote: "「想要得到越多，怕失去的也就越多。但得到总是伴随着失去。强烈的恐惧把自己囚禁在一个狭小的空间里无法动弹。」" },
+                    { title: "《慢疾之境》", meta: "30*40cm | 2025年12月 | 布面油画", img: "cocozoe_art2.jpg", quote: "「一个人的心态能决定病痛的程度，越挣扎越排斥会越痛苦，就像坐在木船上被烈火炙烤，但安定下来，会发现病痛不会消失，但负面的思想会有很多的出口。」" },
+                    { title: "《背叛之境》", meta: "30*40cm | 2025年12月 | 布面油画", img: "cocozoe_art3.jpg", quote: "「人是善恶兼具的存在，天使和恶魔并没有天壤之别。内心的提醒时隐时现，但又被忽视，继而酿成了不可挽回的后果。很多时候背叛自己的，其实不是他人，而是自己。」" },
+                    { title: "《破碎之境》", meta: "30*40cm | 2025年12月 | 布面油画", img: "cocozoe_art4.jpg", quote: "「在滤镜碎掉的那一刻，很多记忆和美好都从身体里被抽离，强烈崩溃仿佛自我也跟着一起破碎掉。之后发现，没有那些人和事，我也不会消失，不需要依赖索求他人的认可也能存在。」" },
+                    { title: "《暗夜之境》", meta: "30*40cm | 2025年12月 | 布面油画", img: "cocozoe_art5.jpg", quote: "「月亮即是船，我即是月亮；万物唯心造，暗夜与光明，也没有天壤之别。」" }
+                ]
+            }
+        };
+
+        let currentArtistData = null;
+        const romanNumerals = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
+
+        function openArtist(artistKey) {
+            currentArtistData = artistsData[artistKey];
+            
+            document.getElementById('display-avatar').src = currentArtistData.avatar;
+            document.getElementById('display-theme').innerText = currentArtistData.theme;
+            document.getElementById('display-bio').innerHTML = currentArtistData.bio.replace(/\n/g, '<br>');
+            document.getElementById('display-review').innerText = currentArtistData.review;
+            
+            const ring = document.getElementById('dynamic-ring');
+            ring.innerHTML = '';
+            const total = currentArtistData.artworks.length;
+            
+            for(let i = 0; i < total; i++) {
+                const angle = (i * (360 / total) - 90) * (Math.PI / 180);
+                const x = 50 + 50 * Math.cos(angle);
+                const y = 50 + 50 * Math.sin(angle);
+                
+                const node = document.createElement('div');
+                node.className = 'astro-node';
+                node.style.left = `${x}%`; 
+                node.style.top = `${y}%`;
+                node.style.transform = `translate(-50%, -50%)`;
+                node.innerText = romanNumerals[i];
+                
+                node.onclick = () => showArtwork(i);
+                ring.appendChild(node);
+            }
+
+            showArtwork(0);
+            switchView('artist-view');
+        }
+
+        function showArtwork(index) {
+            if(!currentArtistData) return;
+            const artwork = currentArtistData.artworks[index];
+            const imgEl = document.getElementById('display-artwork');
+            
+            imgEl.style.opacity = 0;
+            setTimeout(() => {
+                imgEl.src = artwork.img;
+                document.getElementById('display-title').innerText = artwork.title;
+                document.getElementById('display-meta').innerText = artwork.meta;
+                document.getElementById('display-quote').innerText = artwork.quote;
+                imgEl.style.opacity = 1;
+            }, 300);
+
+            const nodes = document.querySelectorAll('.astro-node');
+            nodes.forEach((node, i) => {
+                if(i === index) {
+                    node.classList.add('active');
+                    node.style.transform = `translate(-50%, -50%) scale(1.15)`;
+                } else {
+                    node.classList.remove('active');
+                    node.style.transform = `translate(-50%, -50%) scale(1)`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
